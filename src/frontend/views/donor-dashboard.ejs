@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donor Dashboard - LifePulse</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/donor.css?v=2">
+</head>
+<body class="donor-theme">
+  <div class="global-bg"></div>
+  <div class="hero-background">
+    <div class="layer-1"></div>
+    <div class="layer-2"></div>
+    <div class="layer-3"></div>
+  </div>
+  <div class="dashboard-container">
+    <div class="profile-card u-centered text-center">
+      <h1 class="text-center">Donor Dashboard</h1>
+      <div id="donor-info" class="profile-info text-center"></div>
+    </div>
+
+    <div class="availability-section u-centered text-center">
+      <h2 class="text-center">Availability Status</h2>
+      <div class="availability-toggle">
+        <span>Donation Status:</span>
+        <div class="toggle-switch" id="availability-toggle">
+          <span class="toggle-label">Available</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-edit-section u-centered text-center">
+      <h2 class="text-center">Edit Profile</h2>
+      <form id="profileForm" class="form-panel text-center">
+        <div class="row justify-content-center">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="full_name" class="form-label text-center">👤 Full Name</label>
+              <input type="text" class="form-control text-center" id="full_name" name="full_name">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="phone" class="form-label text-center">Phone</label>
+              <input type="text" class="form-control text-center" id="phone" name="phone">
+            </div>
+          </div>
+        </div>
+        <div class="row justify-content-center">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="area" class="form-label text-center">Area</label>
+              <input type="text" class="form-control text-center" id="area" name="area">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="blood_group" class="form-label text-center">Blood Group</label>
+              <input type="text" class="form-control text-center" id="blood_group" name="blood_group" readonly>
+            </div>
+          </div>
+        </div>
+        <div class="row justify-content-center">
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="latitude" class="form-label text-center">Latitude</label>
+              <input type="number" step="any" class="form-control text-center" id="latitude" name="latitude">
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="longitude" class="form-label text-center">Longitude</label>
+              <input type="number" step="any" class="form-control text-center" id="longitude" name="longitude">
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">Update Profile</button>
+      </form>
+    </div>
+
+    <div class="requests-section u-centered text-center">
+      <h2 class="text-center">Blood Requests</h2>
+      <div id="notifications" class="requests-list text-center"></div>
+    </div>
+
+    <div class="logout-section u-centered text-center">
+      <a href="/logout" class="btn btn-danger">Logout</a>
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/hero-animation.js"></script>
+  <script>
+    const token = localStorage.getItem('token');
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    async function loadProfile() {
+      const response = await fetch('/api/donors/profile', { headers });
+      const data = await response.json();
+      const donor = data.donor;
+
+      // Fill form
+      document.getElementById('full_name').value = donor.full_name;
+      document.getElementById('phone').value = donor.phone;
+      document.getElementById('area').value = donor.area;
+      document.getElementById('latitude').value = donor.latitude;
+      document.getElementById('longitude').value = donor.longitude;
+      document.getElementById('blood_group').value = donor.blood_group;
+
+      // Update availability toggle
+      const toggle = document.getElementById('availability-toggle');
+      if (donor.is_available) {
+        toggle.classList.add('active');
+      } else {
+        toggle.classList.remove('active');
+      }
+
+      // Update profile info
+      document.getElementById('donor-info').innerHTML = `
+        <div class="profile-details text-center">
+          <div class="profile-stat text-center">
+            <span class="stat-icon">👤</span>
+            <div>
+              <h4>${donor.full_name}</h4>
+              <p>${donor.email}</p>
+            </div>
+          </div>
+          <div class="profile-stat text-center">
+            <span class="stat-icon">🩸</span>
+            <div>
+              <h4>${donor.blood_group}</h4>
+              <p>Blood Group</p>
+            </div>
+          </div>
+          <div class="profile-stat text-center">
+            <span class="stat-icon">📍</span>
+            <div>
+              <h4>${donor.area}</h4>
+              <p>Location</p>
+            </div>
+          </div>
+          <div class="profile-stat text-center">
+            <span class="stat-icon">${donor.status === 'APPROVED' ? '✅' : '⏳'}</span>
+            <div>
+              <h4>${donor.status}</h4>
+              <p>Status</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadNotifications() {
+      const response = await fetch('/api/donors/notifications', { headers });
+      const data = await response.json();
+      const container = document.getElementById('notifications');
+
+      if (data.notifications.length === 0) {
+        container.innerHTML = '<p class="text-center">No blood requests at the moment</p>';
+        return;
+      }
+
+      container.innerHTML = data.notifications.map(notif => `
+        <div class="request-card text-center">
+          <div class="request-header text-center">
+            <h4>🩸 ${notif.BloodRequest.blood_group_needed} Blood Needed</h4>
+            <span class="hospital-name">🏥 ${notif.BloodRequest.Hospital.name}</span>
+          </div>
+          <div class="request-details text-center">
+            <p><strong>Urgency:</strong> ${notif.BloodRequest.urgency || 'Normal'}</p>
+            <p><strong>Location:</strong> ${notif.BloodRequest.Hospital.location || 'Not specified'}</p>
+            <p><strong>Response:</strong> <span class="response-status ${notif.response ? notif.response.toLowerCase() : 'pending'}">${notif.response || 'Pending'}</span></p>
+          </div>
+          <div class="request-actions text-center">
+            ${!notif.response ? `
+              <button onclick="respond(${notif.id}, 'ACCEPT')" class="btn btn-accept">✅ Accept</button>
+              <button onclick="respond(${notif.id}, 'DECLINE')" class="btn btn-decline">❌ Decline</button>
+            ` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    async function respond(notificationId, response) {
+      try {
+        await fetch('/api/donors/respond', {
+          method: 'POST',
+          headers,
+          body: JSON.stringify({ notification_id: notificationId, response })
+        });
+        loadNotifications();
+      } catch (error) {
+        console.error('Error responding to request:', error);
+        alert('Failed to send response. Please try again.');
+      }
+    }
+
+    // Availability toggle functionality
+    document.getElementById('availability-toggle').addEventListener('click', async () => {
+      const toggle = document.getElementById('availability-toggle');
+      const isAvailable = !toggle.classList.contains('active');
+
+      try {
+        await fetch('/api/donors/availability', {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify({ is_available: isAvailable })
+        });
+
+        if (isAvailable) {
+          toggle.classList.add('active');
+        } else {
+          toggle.classList.remove('active');
+        }
+      } catch (error) {
+        console.error('Error updating availability:', error);
+        alert('Failed to update availability. Please try again.');
+      }
+    });
+
+    // Profile form submission
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData);
+
+      try {
+        await fetch('/api/donors/profile', {
+          method: 'PUT',
+          headers,
+          body: JSON.stringify(data)
+        });
+        loadProfile();
+        alert('Profile updated successfully!');
+      } catch (error) {
+        console.error('Error updating profile:', error);
+        alert('Failed to update profile. Please try again.');
+      }
+    });
+
+    // Initialize dashboard
+    loadProfile();
+    loadNotifications();
+  </script>
+</body>
+</html>

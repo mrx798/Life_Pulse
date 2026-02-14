@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LifePulse - Blood Donor System</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/home.css">
+</head>
+<body class="home-container">
+  <div class="title-container">
+    <h1 class="main-title">Life Pulse <span class="heart"></span></h1>
+  </div>
+  <div class="selector-area">
+    <div class="selector-cards">
+      <a href="/register" class="selector-card donor-register u-centered">
+        <h2>Donor Register</h2>
+        <p>Join our community of life-savers</p>
+      </a>
+      <a href="/login" class="selector-card donor-login u-centered">
+        <h2>Donor Login</h2>
+        <p>Access your dashboard</p>
+      </a>
+      <a href="/hospital/login" class="selector-card hospital-login u-centered">
+        <h2>Hospital Login</h2>
+        <p>Manage donor approvals</p>
+      </a>
+    </div>
+    <div class="decorative-panel">
+      <div class="grid-overlay"></div>
+    </div>
+  </div>
+  <div class="bottom-text">
+    <p class="modest-text">Your little effort can give others second chance to live life.</p>
+  </div>
+  <canvas id="particle-canvas"></canvas>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Advanced Particle System for Home Page
+    const canvas = document.getElementById('particle-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let animationId;
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function createParticle() {
+      return {
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 2,
+        vy: (Math.random() - 0.5) * 2,
+        size: Math.random() * 3 + 1,
+        color: ['#00ffff', '#8000ff', '#ff0080'][Math.floor(Math.random() * 3)],
+        life: Math.random() * 100 + 50
+      };
+    }
+
+    function initParticles() {
+      particles = [];
+      for (let i = 0; i < 100; i++) {
+        particles.push(createParticle());
+      }
+    }
+
+    function updateParticles() {
+      particles.forEach(p => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+        if (p.life <= 0) {
+          Object.assign(p, createParticle());
+        }
+      });
+    }
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life / 150;
+        ctx.fill();
+      });
+      ctx.globalAlpha = 1;
+    }
+
+    function animate() {
+      updateParticles();
+      drawParticles();
+      animationId = requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+    resizeCanvas();
+    initParticles();
+    animate();
+  </script>
+</body>
+</html>

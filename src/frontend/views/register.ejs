@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Donor Registration - LifePulse</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/main.css">
+  <link rel="stylesheet" href="/css/donor.css">
+</head>
+<body class="donor-theme">
+  <div class="hero-background">
+    <div class="layer-1"></div>
+    <div class="layer-2"></div>
+    <div class="layer-3"></div>
+  </div>
+  <div class="container mt-5 u-centered">
+    <div class="form-panel">
+      <h1>Donor Registration</h1>
+      <form id="registerForm" class="form-panel text-center">
+      <div class="mb-3">
+        <label for="full_name" class="form-label">Full Name</label>
+        <input type="text" class="form-control" id="full_name" name="full_name" required>
+      </div>
+      <div class="mb-3">
+        <label for="email" class="form-label">Email</label>
+        <input type="email" class="form-control" id="email" name="email" required>
+      </div>
+      <div class="mb-3">
+        <label for="password" class="form-label">Password</label>
+        <input type="password" class="form-control" id="password" name="password" required>
+      </div>
+      <div class="mb-3">
+        <label for="blood_group" class="form-label">Blood Group</label>
+        <select class="form-control" id="blood_group" name="blood_group" required>
+          <option value="">Select</option>
+          <option value="A+">A+</option>
+          <option value="A-">A-</option>
+          <option value="B+">B+</option>
+          <option value="B-">B-</option>
+          <option value="AB+">AB+</option>
+          <option value="AB-">AB-</option>
+          <option value="O+">O+</option>
+          <option value="O-">O-</option>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label for="area" class="form-label">Address / Area</label>
+        <input type="text" class="form-control" id="area" name="area" required>
+      </div>
+      <div class="mb-3">
+        <label for="latitude" class="form-label">Latitude</label>
+        <input type="number" step="any" class="form-control" id="latitude" name="latitude">
+        <button type="button" id="use-location" class="location-btn mt-2">Use My Location</button>
+      </div>
+      <div class="mb-3">
+        <label for="longitude" class="form-label">Longitude</label>
+        <input type="number" step="any" class="form-control" id="longitude" name="longitude">
+      </div>
+      <div class="mb-3">
+        <label for="phone" class="form-label">Phone Number</label>
+        <input type="text" class="form-control" id="phone" name="phone" required>
+      </div>
+      <div class="mb-3">
+        <input type="checkbox" id="consent" name="consent_given" required>
+        <label for="consent">I consent to donate blood</label>
+      </div>
+      <button type="submit" class="btn btn-primary">Register</button>
+    </form>
+    <div id="message"></div>
+  <script>
+    document.getElementById('registerForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const data = Object.fromEntries(formData);
+      data.consent_given = data.consent_given === 'on';
+      try {
+        const response = await fetch('/api/donors/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await response.json();
+        document.getElementById('message').innerText = result.message || result.error;
+        if (response.ok) {
+          alert('Registration successful. Your account is pending approval.');
+          window.location.href = '/login';
+        }
+      } catch (error) {
+        document.getElementById('message').innerText = 'Error: ' + error.message;
+      }
+    });
+  </script>
+  <script src="/js/hero-animation.js"></script>
+</body>
+</html>
