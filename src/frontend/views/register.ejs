@@ -49,14 +49,16 @@
         <input type="text" class="form-control" id="area" name="area" required>
       </div>
       <div class="mb-3">
-        <label for="latitude" class="form-label">Latitude</label>
-        <input type="number" step="any" class="form-control" id="latitude" name="latitude">
-        <button type="button" id="use-location" class="location-btn mt-2">Use My Location</button>
+        <label class="form-label">Location</label>
+        <div class="location-input-group">
+          <button type="button" id="use-location" class="btn btn-outline-primary w-100">📍 Use My Current Location</button>
+          <small id="location-status" class="form-text text-muted mt-2 d-block">Click to capture your location for blood donation requests.</small>
+        </div>
+        <!-- Hidden inputs for backend compatibility -->
+        <input type="hidden" id="latitude" name="latitude">
+        <input type="hidden" id="longitude" name="longitude">
       </div>
-      <div class="mb-3">
-        <label for="longitude" class="form-label">Longitude</label>
-        <input type="number" step="any" class="form-control" id="longitude" name="longitude">
-      </div>
+
       <div class="mb-3">
         <label for="phone" class="form-label">Phone Number</label>
         <input type="text" class="form-control" id="phone" name="phone" required>
@@ -68,12 +70,60 @@
       <button type="submit" class="btn btn-primary">Register</button>
     </form>
     <div id="message"></div>
+
   <script>
+    // Location Tracking Logic
+    const locationBtn = document.getElementById('use-location');
+    const statusText = document.getElementById('location-status');
+    const latInput = document.getElementById('latitude');
+    const longInput = document.getElementById('longitude');
+
+    locationBtn.addEventListener('click', () => {
+      if (!navigator.geolocation) {
+        statusText.textContent = "Geolocation is not supported by your browser.";
+        statusText.className = "form-text text-danger mt-2 d-block";
+        return;
+      }
+
+      statusText.textContent = "Locating...";
+      locationBtn.disabled = true;
+
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const lat = position.coords.latitude;
+          const long = position.coords.longitude;
+          
+          latInput.value = lat;
+          longInput.value = long;
+
+          statusText.innerHTML = `✅ Location captured: <strong>${lat.toFixed(4)}, ${long.toFixed(4)}</strong>`;
+          statusText.className = "form-text text-success mt-2 d-block";
+          locationBtn.innerHTML = "📍 Update Location";
+          locationBtn.disabled = false;
+        },
+        (error) => {
+          let msg = "Unable to retrieve your location.";
+          if (error.code === 1) msg = "Permission denied. Please allow location access.";
+          statusText.textContent = "❌ " + msg;
+          statusText.className = "form-text text-danger mt-2 d-block";
+          locationBtn.disabled = false;
+        }
+      );
+    });
+
     document.getElementById('registerForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
       const data = Object.fromEntries(formData);
       data.consent_given = data.consent_given === 'on';
+
+      // Ensure location is captured (optional validation)
+      if (!data.latitude || !data.longitude) {
+        if (!confirm("No location captured. Are you sure you want to register without location? You won't appear on the nearby donor map.")) {
+          return;
+        }
+      }
+
       try {
         const response = await fetch('/api/donors/register', {
           method: 'POST',
@@ -81,13 +131,20 @@
           body: JSON.stringify(data)
         });
         const result = await response.json();
-        document.getElementById('message').innerText = result.message || result.error;
+        const msgDiv = document.getElementById('message');
+        msgDiv.innerText = result.message || result.error;
+        
         if (response.ok) {
-          alert('Registration successful. Your account is pending approval.');
-          window.location.href = '/login';
+          msgDiv.className = "alert alert-success mt-3";
+          setTimeout(() => {
+             window.location.href = '/login';
+          }, 2000);
+        } else {
+             msgDiv.className = "alert alert-danger mt-3";
         }
       } catch (error) {
         document.getElementById('message').innerText = 'Error: ' + error.message;
+        document.getElementById('message').className = "alert alert-danger mt-3";
       }
     });
   </script>
