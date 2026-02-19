@@ -19,6 +19,7 @@ db.Hospital = require('./hospital')(sequelize, Sequelize);
 db.BloodRequest = require('./bloodRequest')(sequelize, Sequelize);
 db.NotificationLog = require('./notificationLog')(sequelize, Sequelize);
 db.AuditLog = require('./auditLog')(sequelize, Sequelize);
+db.OTP = require('./otp')(sequelize, Sequelize);
 
 // Associations
 db.Donor.hasMany(db.NotificationLog, { foreignKey: 'donor_id' });

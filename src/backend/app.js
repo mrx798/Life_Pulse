@@ -21,14 +21,18 @@ app.use(express.static(path.join(__dirname, '../../public')));
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, '../frontend/views'));
 
+const { otpLimiter, registerLimiter, loginLimiter } = require('./middleware/rateLimiter');
+
 // Routes
 app.get('/', (req, res) => res.render('index'));
 app.get('/register', (req, res) => res.render('register'));
-app.post('/api/donors/register', require('./controllers/donor.controller').register);
+app.post('/api/donors/register', registerLimiter, require('./controllers/donor.controller').register);
+app.post('/api/auth/verify-otp', otpLimiter, require('./controllers/donor.controller').verifyEmail);
+
 app.get('/login', (req, res) => res.render('login'));
-app.post('/api/auth/login', require('./controllers/auth.controller').login);
+app.post('/api/auth/login', loginLimiter, require('./controllers/auth.controller').login);
 app.get('/hospital/login', (req, res) => res.render('hospital-login'));
-app.post('/api/hospital/login', require('./controllers/hospital.controller').login);
+app.post('/api/hospital/login', loginLimiter, require('./controllers/hospital.controller').login);
 
 // Protected routes
 app.get('/api/donors/profile', authenticate, require('./controllers/donor.controller').getProfile);
@@ -41,6 +45,7 @@ app.get('/api/hospital/pending-donors', authenticate, require('./controllers/hos
 app.post('/api/hospital/approve/:id', authenticate, require('./controllers/hospital.controller').approveDonor);
 app.post('/api/hospital/reject/:id', authenticate, require('./controllers/hospital.controller').rejectDonor);
 app.get('/api/hospital/donors', authenticate, require('./controllers/hospital.controller').getAllDonors);
+app.post('/api/hospital/alert-donor/:id', authenticate, require('./controllers/hospital.controller').alertDonor);
 
 // Dashboard redirects (for session-based, but now API)
 app.get('/donor/dashboard', (req, res) => res.render('donor-dashboard'));

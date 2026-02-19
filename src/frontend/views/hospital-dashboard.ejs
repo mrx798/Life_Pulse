@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/hospital.css">
 </head>
+
 <body class="hospital-theme">
   <div class="dashboard-layout">
     <div class="sidebar">
@@ -105,17 +107,37 @@
     }
 
     async function approveDonor(id) {
-      await fetch(`/api/hospital/approve/${id}`, { method: 'POST', headers });
-      loadPendingDonors();
-      loadStats();
-      loadDonors();
+      if (!confirm('Are you sure you want to approve this donor?')) return;
+
+      const response = await fetch(`/api/hospital/approve/${id}`, { method: 'POST', headers });
+      if (response.ok) {
+        loadPendingDonors();
+        loadStats();
+        loadDonors();
+      } else {
+        const data = await response.json();
+        alert('Error: ' + data.error);
+      }
     }
 
     async function rejectDonor(id) {
-      await fetch(`/api/hospital/reject/${id}`, { method: 'POST', headers });
-      loadPendingDonors();
-      loadStats();
-      loadDonors();
+      const reason = prompt("Please enter the reason for rejection:");
+      if (!reason) return; // Cancelled or empty
+
+      const response = await fetch(`/api/hospital/reject/${id}`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ reason })
+      });
+
+      if (response.ok) {
+        loadPendingDonors();
+        loadStats();
+        loadDonors();
+      } else {
+        const data = await response.json();
+        alert('Error: ' + data.error);
+      }
     }
 
     async function loadDonors() {
@@ -157,9 +179,32 @@
     }
 
     async function alertDonor(id) {
-      if (confirm('Send emergency alert to this donor?')) {
-        alert('🚨 Emergency alert sent to donor! This would trigger push notification in a real app.');
-        // Here you can implement actual notification logic
+      if (!confirm('Are you sure you want to send an URGENT alert to this donor?')) return;
+
+      try {
+        const response = await fetch(`/api/hospital/alert-donor/${id}`, { method: 'POST', headers });
+
+        // Handle 404 specifically
+        if (response.status === 404) {
+          alert('❌ Error: API Route not found. Please RESTART THE SERVER.');
+          return;
+        }
+
+        let data;
+        try {
+          data = await response.json();
+        } catch (e) {
+          throw new Error(`Server returned status ${response.status} but invalid JSON`);
+        }
+
+        if (response.ok) {
+          alert('✅ ' + data.message);
+        } else {
+          alert('❌ Error: ' + data.error);
+        }
+      } catch (error) {
+        console.error('Error sending alert:', error);
+        alert('❌ Network/Server Error: ' + error.message);
       }
     }
 
@@ -169,4 +214,5 @@
     loadDonors();
   </script>
 </body>
+
 </html>

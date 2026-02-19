@@ -40,8 +40,12 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DECIMAL(11, 8),
     },
     status: {
-      type: DataTypes.ENUM('PENDING', 'APPROVED', 'REJECTED'),
-      defaultValue: 'PENDING',
+      type: DataTypes.ENUM('pending_email_verification', 'pending_hospital_approval', 'APPROVED', 'REJECTED', 'PENDING'), // Keeping PENDING for backward compatibility if needed, though migration preferred
+      defaultValue: 'pending_email_verification',
+    },
+    rejection_reason: {
+      type: DataTypes.STRING,
+      allowNull: true,
     },
     is_available: {
       type: DataTypes.BOOLEAN,

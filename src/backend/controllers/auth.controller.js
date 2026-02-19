@@ -11,7 +11,13 @@ const login = async (req, res) => {
     if (type === 'donor') {
       user = await db.Donor.findOne({ where: { email } });
       if (!user) return res.status(400).json({ error: 'Invalid credentials' });
-      if (user.status !== 'APPROVED') return res.status(403).json({ error: `Account not approved. Current status: ${user.status}` });
+      if (user.status !== 'APPROVED') {
+        let msg = `Account not approved. Current status: ${user.status}`;
+        if (user.status === 'pending_email_verification') msg = 'Please verify your email address.';
+        if (user.status === 'pending_hospital_approval') msg = 'Your account is waiting for hospital approval.';
+        if (user.status === 'REJECTED') msg = `Your account was rejected. Reason: ${user.rejection_reason || 'Not specified'}`;
+        return res.status(403).json({ error: msg });
+      }
     } else if (type === 'hospital') {
       user = await db.Hospital.findOne({ where: { email } });
       if (!user) return res.status(400).json({ error: 'Invalid credentials' });

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,6 +9,7 @@
   <link rel="stylesheet" href="/css/main.css">
   <link rel="stylesheet" href="/css/donor.css">
 </head>
+
 <body class="donor-theme">
   <div class="hero-background">
     <div class="layer-1"></div>
@@ -18,136 +20,192 @@
     <div class="form-panel">
       <h1>Donor Registration</h1>
       <form id="registerForm" class="form-panel text-center">
-      <div class="mb-3">
-        <label for="full_name" class="form-label">Full Name</label>
-        <input type="text" class="form-control" id="full_name" name="full_name" required>
-      </div>
-      <div class="mb-3">
-        <label for="email" class="form-label">Email</label>
-        <input type="email" class="form-control" id="email" name="email" required>
-      </div>
-      <div class="mb-3">
-        <label for="password" class="form-label">Password</label>
-        <input type="password" class="form-control" id="password" name="password" required>
-      </div>
-      <div class="mb-3">
-        <label for="blood_group" class="form-label">Blood Group</label>
-        <select class="form-control" id="blood_group" name="blood_group" required>
-          <option value="">Select</option>
-          <option value="A+">A+</option>
-          <option value="A-">A-</option>
-          <option value="B+">B+</option>
-          <option value="B-">B-</option>
-          <option value="AB+">AB+</option>
-          <option value="AB-">AB-</option>
-          <option value="O+">O+</option>
-          <option value="O-">O-</option>
-        </select>
-      </div>
-      <div class="mb-3">
-        <label for="area" class="form-label">Address / Area</label>
-        <input type="text" class="form-control" id="area" name="area" required>
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Location</label>
-        <div class="location-input-group">
-          <button type="button" id="use-location" class="btn btn-outline-primary w-100">📍 Use My Current Location</button>
-          <small id="location-status" class="form-text text-muted mt-2 d-block">Click to capture your location for blood donation requests.</small>
+        <div class="mb-3">
+          <label for="full_name" class="form-label">Full Name</label>
+          <input type="text" class="form-control" id="full_name" name="full_name" required>
         </div>
-        <!-- Hidden inputs for backend compatibility -->
-        <input type="hidden" id="latitude" name="latitude">
-        <input type="hidden" id="longitude" name="longitude">
-      </div>
+        <div class="mb-3">
+          <label for="email" class="form-label">Email</label>
+          <input type="email" class="form-control" id="email" name="email" required>
+        </div>
+        <div class="mb-3">
+          <label for="password" class="form-label">Password</label>
+          <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <div class="mb-3">
+          <label for="blood_group" class="form-label">Blood Group</label>
+          <select class="form-control" id="blood_group" name="blood_group" required>
+            <option value="">Select</option>
+            <option value="A+">A+</option>
+            <option value="A-">A-</option>
+            <option value="B+">B+</option>
+            <option value="B-">B-</option>
+            <option value="AB+">AB+</option>
+            <option value="AB-">AB-</option>
+            <option value="O+">O+</option>
+            <option value="O-">O-</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label for="area" class="form-label">Address / Area</label>
+          <input type="text" class="form-control" id="area" name="area" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Location</label>
+          <div class="location-input-group">
+            <button type="button" id="use-location" class="btn btn-outline-primary w-100">📍 Use My Current
+              Location</button>
+            <small id="location-status" class="form-text text-muted mt-2 d-block">Click to capture your location for
+              blood donation requests.</small>
+          </div>
+          <!-- Hidden inputs for backend compatibility -->
+          <input type="hidden" id="latitude" name="latitude">
+          <input type="hidden" id="longitude" name="longitude">
+        </div>
 
-      <div class="mb-3">
-        <label for="phone" class="form-label">Phone Number</label>
-        <input type="text" class="form-control" id="phone" name="phone" required>
-      </div>
-      <div class="mb-3">
-        <input type="checkbox" id="consent" name="consent_given" required>
-        <label for="consent">I consent to donate blood</label>
-      </div>
-      <button type="submit" class="btn btn-primary">Register</button>
-    </form>
-    <div id="message"></div>
+        <div class="mb-3">
+          <label for="phone" class="form-label">Phone Number</label>
+          <input type="text" class="form-control" id="phone" name="phone" required>
+        </div>
+        <div class="mb-3">
+          <input type="checkbox" id="consent" name="consent_given" required>
+          <label for="consent">I consent to donate blood</label>
+        </div>
+        <button type="submit" class="btn btn-primary">Register</button>
+      </form>
+      <div id="message"></div>
 
-  <script>
-    // Location Tracking Logic
-    const locationBtn = document.getElementById('use-location');
-    const statusText = document.getElementById('location-status');
-    const latInput = document.getElementById('latitude');
-    const longInput = document.getElementById('longitude');
+      <script>
+        // Location Tracking Logic
+        const locationBtn = document.getElementById('use-location');
+        const statusText = document.getElementById('location-status');
+        const latInput = document.getElementById('latitude');
+        const longInput = document.getElementById('longitude');
 
-    locationBtn.addEventListener('click', () => {
-      if (!navigator.geolocation) {
-        statusText.textContent = "Geolocation is not supported by your browser.";
-        statusText.className = "form-text text-danger mt-2 d-block";
-        return;
-      }
+        locationBtn.addEventListener('click', () => {
+          if (!navigator.geolocation) {
+            statusText.textContent = "Geolocation is not supported by your browser.";
+            statusText.className = "form-text text-danger mt-2 d-block";
+            return;
+          }
 
-      statusText.textContent = "Locating...";
-      locationBtn.disabled = true;
+          statusText.textContent = "Locating...";
+          locationBtn.disabled = true;
 
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const lat = position.coords.latitude;
-          const long = position.coords.longitude;
-          
-          latInput.value = lat;
-          longInput.value = long;
+          navigator.geolocation.getCurrentPosition(
+            (position) => {
+              const lat = position.coords.latitude;
+              const long = position.coords.longitude;
 
-          statusText.innerHTML = `✅ Location captured: <strong>${lat.toFixed(4)}, ${long.toFixed(4)}</strong>`;
-          statusText.className = "form-text text-success mt-2 d-block";
-          locationBtn.innerHTML = "📍 Update Location";
-          locationBtn.disabled = false;
-        },
-        (error) => {
-          let msg = "Unable to retrieve your location.";
-          if (error.code === 1) msg = "Permission denied. Please allow location access.";
-          statusText.textContent = "❌ " + msg;
-          statusText.className = "form-text text-danger mt-2 d-block";
-          locationBtn.disabled = false;
-        }
-      );
-    });
+              latInput.value = lat;
+              longInput.value = long;
 
-    document.getElementById('registerForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      const data = Object.fromEntries(formData);
-      data.consent_given = data.consent_given === 'on';
-
-      // Ensure location is captured (optional validation)
-      if (!data.latitude || !data.longitude) {
-        if (!confirm("No location captured. Are you sure you want to register without location? You won't appear on the nearby donor map.")) {
-          return;
-        }
-      }
-
-      try {
-        const response = await fetch('/api/donors/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data)
+              statusText.innerHTML = `✅ Location captured: <strong>${lat.toFixed(4)}, ${long.toFixed(4)}</strong>`;
+              statusText.className = "form-text text-success mt-2 d-block";
+              locationBtn.innerHTML = "📍 Update Location";
+              locationBtn.disabled = false;
+            },
+            (error) => {
+              let msg = "Unable to retrieve your location.";
+              if (error.code === 1) msg = "Permission denied. Please allow location access.";
+              statusText.textContent = "❌ " + msg;
+              statusText.className = "form-text text-danger mt-2 d-block";
+              locationBtn.disabled = false;
+            }
+          );
         });
-        const result = await response.json();
-        const msgDiv = document.getElementById('message');
-        msgDiv.innerText = result.message || result.error;
-        
-        if (response.ok) {
-          msgDiv.className = "alert alert-success mt-3";
-          setTimeout(() => {
-             window.location.href = '/login';
-          }, 2000);
-        } else {
-             msgDiv.className = "alert alert-danger mt-3";
+
+        let registeredEmail = '';
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const formData = new FormData(e.target);
+          const data = Object.fromEntries(formData);
+          data.consent_given = data.consent_given === 'on';
+
+          // Ensure location is captured
+          if (!data.latitude || !data.longitude) {
+            if (!confirm("No location captured. Are you sure you want to register without location? You won't appear on the nearby donor map.")) {
+              return;
+            }
+          }
+
+          try {
+            const response = await fetch('/api/donors/register', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data)
+            });
+            const result = await response.json();
+            const msgDiv = document.getElementById('message');
+
+            if (response.ok) {
+              registeredEmail = result.email;
+              msgDiv.className = "alert alert-success mt-3";
+              msgDiv.innerText = result.message;
+              // Show OTP Modal
+              showOtpModal();
+            } else {
+              msgDiv.innerText = result.error;
+              msgDiv.className = "alert alert-danger mt-3";
+            }
+          } catch (error) {
+            document.getElementById('message').innerText = 'Error: ' + error.message;
+            document.getElementById('message').className = "alert alert-danger mt-3";
+          }
+        });
+
+        function showOtpModal() {
+          // Create and show OTP modal dynamically
+          const modalHtml = `
+        <div class="modal fade" id="otpModal" data-bs-backdrop="static" tabindex="-1">
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">Verify Your Email</h5>
+              </div>
+              <div class="modal-body">
+                <p>Please enter the OTP sent to <strong>${registeredEmail}</strong></p>
+                <input type="text" id="otpInput" class="form-control text-center" placeholder="Enter 6-digit OTP" maxlength="6">
+                <div id="otpMessage" class="mt-2 text-center text-danger"></div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-primary w-100" onclick="verifyOtp()">Verify OTP</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+          document.body.insertAdjacentHTML('beforeend', modalHtml);
+          const otpModal = new bootstrap.Modal(document.getElementById('otpModal'));
+          otpModal.show();
         }
-      } catch (error) {
-        document.getElementById('message').innerText = 'Error: ' + error.message;
-        document.getElementById('message').className = "alert alert-danger mt-3";
-      }
-    });
-  </script>
-  <script src="/js/hero-animation.js"></script>
+
+        async function verifyOtp() {
+          const otp = document.getElementById('otpInput').value;
+          const msgDiv = document.getElementById('otpMessage');
+
+          try {
+            const response = await fetch('/api/auth/verify-otp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ email: registeredEmail, otp })
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+              alert('Verification Successful! Redirecting to login...');
+              window.location.href = '/login';
+            } else {
+              msgDiv.innerText = result.error;
+            }
+          } catch (error) {
+            msgDiv.innerText = "Error verifying OTP";
+          }
+        }
+      </script>
+      <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+      <script src="/js/hero-animation.js"></script>
 </body>
+
 </html>

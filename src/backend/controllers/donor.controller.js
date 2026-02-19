@@ -4,27 +4,92 @@ const jwt = require('jsonwebtoken');
 const config = require('../config');
 const auditService = require('../services/audit.service');
 const { v4: uuidv4 } = require('uuid');
+const validator = require('validator');
+const otpService = require('../services/otp.service');
 
 const register = async (req, res) => {
   try {
     const { full_name, email, password, blood_group, area, latitude, longitude, phone, consent_given } = req.body;
-    const password_hash = await bcrypt.hash(password, 12);
-    const donor_code = uuidv4().substring(0, 8).toUpperCase();
-    const donor = await db.Donor.create({
-      donor_code,
-      full_name,
-      email,
-      password_hash,
-      phone,
-      blood_group,
-      area,
-      latitude,
-      longitude,
-      consent_given,
-      status: 'PENDING',
+
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ error: 'Invalid email address' });
+    }
+
+    let donor = await db.Donor.findOne({ where: { email } });
+
+    if (donor) {
+      if (donor.status === 'APPROVED') {
+        return res.status(400).json({ error: 'Email already registered and approved. Please login.' });
+      } else if (donor.status === 'REJECTED') {
+        return res.status(400).json({ error: 'This email has been rejected previously.' });
+      }
+
+      // If pending, update details and resend OTP
+      const password_hash = await bcrypt.hash(password, 12);
+      await donor.update({
+        full_name,
+        password_hash,
+        phone,
+        blood_group,
+        area,
+        latitude,
+        longitude,
+        consent_given,
+        status: 'pending_email_verification' // Reset status to ensure email verification
+      });
+
+    } else {
+      // Create new donor
+      const password_hash = await bcrypt.hash(password, 12);
+      const donor_code = uuidv4().substring(0, 8).toUpperCase();
+
+      donor = await db.Donor.create({
+        donor_code,
+        full_name,
+        email,
+        password_hash,
+        phone,
+        blood_group,
+        area,
+        latitude,
+        longitude,
+        consent_given,
+        status: 'pending_email_verification',
+      });
+    }
+
+    // Generate and send OTP
+    // const otp = await otpService.generateOTP(email); <--- Removed duplicate call if following logic is used, but better to keep it clean.
+    // Let's restructure to be cleaner.
+
+    const otp = await otpService.generateOTP(email);
+
+    await auditService.log('DONOR', donor.id, 'Registered/Updated (Pending Email Verification)');
+
+    res.json({
+      message: 'Registration successful. An OTP has been sent to your email.',
+      email: donor.email,
+      requires_otp: true
     });
-    await auditService.log('DONOR', donor.id, 'Registered');
-    res.json({ message: 'Registration successful. Your account is pending hospital approval.', donor: { id: donor.id, email: donor.email } });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+const verifyEmail = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    await otpService.verifyOTP(email, otp);
+
+    const donor = await db.Donor.findOne({ where: { email } });
+    if (!donor) return res.status(404).json({ error: 'Donor not found' });
+
+    // Update status to pending_hospital_approval
+    await donor.update({ status: 'pending_hospital_approval' });
+    await auditService.log('DONOR', donor.id, 'Verified Email');
+
+    res.json({ message: 'Email verified. Your account is now pending hospital approval.' });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -103,6 +168,7 @@ const respondToRequest = async (req, res) => {
 
 module.exports = {
   register,
+  verifyEmail,
   login,
   getProfile,
   updateProfile,
